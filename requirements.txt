@@ -17,3 +17,4 @@ python-docx
 matplotlib
 langchain>=0.1.14
 langchain_community>=0.0.21
+textblob
