@@ -12,3 +12,4 @@ python-dotenv
 fpdf
 PyMuPDF
 gdown
+PyPDF2
