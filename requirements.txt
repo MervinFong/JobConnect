@@ -11,3 +11,4 @@ nltk
 python-dotenv
 fpdf
 PyMuPDF
+gdown
