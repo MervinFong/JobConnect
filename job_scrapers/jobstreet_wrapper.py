@@ -5,6 +5,14 @@ from typing import List, Dict
 import spacy
 from textblob import TextBlob
 
+def get_spacy_model():
+    try:
+        return spacy.load("en_core_web_sm")
+    except OSError:
+        from spacy.cli import download
+        download("en_core_web_sm")
+        return spacy.load("en_core_web_sm")
+    
 # Load spaCy model for fallback keyword matching
 nlp = spacy.load("en_core_web_sm")
 
