@@ -5,6 +5,7 @@ from typing import List, Dict
 import spacy
 from textblob import TextBlob
 
+# ✅ Wrapped loading logic
 def get_spacy_model():
     try:
         return spacy.load("en_core_web_sm")
@@ -12,9 +13,9 @@ def get_spacy_model():
         from spacy.cli import download
         download("en_core_web_sm")
         return spacy.load("en_core_web_sm")
-    
-# Load spaCy model for fallback keyword matching
-nlp = spacy.load("en_core_web_sm")
+
+# ✅ DO NOT load nlp globally anymore
+# nlp = get_spacy_model()  ← REMOVE THIS
 
 # Predefined synonym map
 SYNONYM_MAP = {
@@ -29,7 +30,6 @@ SYNONYM_MAP = {
     "admin": ["clerk", "secretary", "administrator", "office assistant"]
 }
 
-# Known job keywords for similarity matching
 KNOWN_JOBS = list(SYNONYM_MAP.keys()) + [j for subs in SYNONYM_MAP.values() for j in subs]
 
 def fetch_scraped_jobs(keyword: str = "Software Engineer", location: str = "Malaysia") -> List[Dict]:
@@ -62,7 +62,6 @@ def fetch_scraped_jobs(keyword: str = "Software Engineer", location: str = "Mala
 
     tried = set()
 
-    # 1. Spellcheck using TextBlob
     corrected = str(TextBlob(keyword).correct())
     print(f"📝 Spellcheck: '{keyword}' → '{corrected}'")
     jobs = run_scraper(corrected, location)
@@ -70,7 +69,9 @@ def fetch_scraped_jobs(keyword: str = "Software Engineer", location: str = "Mala
         return jobs
     tried.add(corrected.lower())
 
-    # 2. Fallback noun using spaCy
+    # ✅ Load spaCy model now
+    nlp = get_spacy_model()
+
     doc = nlp(corrected)
     fallback_nouns = [token.text.lower() for token in doc if token.pos_ in {"NOUN", "PROPN"}]
 
@@ -83,7 +84,6 @@ def fetch_scraped_jobs(keyword: str = "Software Engineer", location: str = "Mala
         if jobs:
             return jobs
 
-    # 3. Similarity match to known job types
     keyword_doc = nlp(corrected)
     best_match = None
     best_score = 0
@@ -101,7 +101,6 @@ def fetch_scraped_jobs(keyword: str = "Software Engineer", location: str = "Mala
             return jobs
         tried.add(best_match)
 
-    # 4. Synonym expansion
     for key, synonyms in SYNONYM_MAP.items():
         if key in corrected.lower():
             for alt in synonyms:
