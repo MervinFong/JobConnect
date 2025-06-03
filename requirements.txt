@@ -13,3 +13,4 @@ fpdf
 PyMuPDF
 gdown
 PyPDF2
+python-docx
