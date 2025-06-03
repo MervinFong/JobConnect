@@ -18,7 +18,7 @@ def setup_sidebar():
             st.page_link("pages/My_Applications.py", label="📄 My Applications")
             st.page_link("pages/faq.py", label="❓ FAQ")
             st.page_link("pages/My_Support_Tickets.py", label="📩 Support Tickets")
-            st.page_link("pages/logout.py", label="🔓 Logout")
+            st.page_link("pages/Logout.py", label="🔓 Logout")
 
         elif role == "Recruiter":
             st.page_link("pages/Recruiter_Dashboard.py", label="🏠 Dashboard")
@@ -29,7 +29,7 @@ def setup_sidebar():
             st.page_link("pages/Chatbot.py", label="🤖 Chatbot")
             st.page_link("pages/faq.py", label="❓ FAQ")
             st.page_link("pages/My_Support_Tickets.py", label="📩 Support Tickets")
-            st.page_link("pages/logout.py", label="🔓 Logout")
+            st.page_link("pages/Logout.py", label="🔓 Logout")
 
         elif role == "Admin":
             st.page_link("pages/AdminHome.py", label="🛡️ Admin Dashboard")
@@ -39,7 +39,7 @@ def setup_sidebar():
             st.page_link("pages/Admin_Manage_Jobs.py", label="📝 Manage Listings")
             st.page_link("pages/Chatbot.py", label="🤖 Chatbot")
             st.page_link("pages/Support_Tickets_Admin.py", label="📩 View Support Tickets")
-            st.page_link("pages/logout.py", label="🔓 Logout")
+            st.page_link("pages/Logout.py", label="🔓 Logout")
 
         else:
             st.info("⚠️ Unknown role. Please log in again.")
