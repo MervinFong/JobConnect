@@ -1,11 +1,9 @@
 import streamlit as st
 import base64
-import download_spacy_model
-from download_models import download_if_not_exists
+import os 
 
-# Auto-download model folders if missing
-download_if_not_exists("t5_resume_model_v2", "1M17FAvVJz7gntv4dRNxpxL5j79dNksTR")
-download_if_not_exists("distilbert_resume_classifier_v2", "1PyHvAo5rWkMAdI81m_VXk-mlATu-K0KZ")
+if not os.path.exists("t5model_v4") or not os.path.exists("distilbert_resume_classifier_v2"):
+    st.error("❌ Model folders not found. Please ensure 't5model_v4' and 'distilbert_resume_classifier_v2' exist in the project root.")
 
 # --- SETUP ---
 
