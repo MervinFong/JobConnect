@@ -22,3 +22,4 @@ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0
 sentencepiece
 openai
 faiss-cpu
+tiktoken
