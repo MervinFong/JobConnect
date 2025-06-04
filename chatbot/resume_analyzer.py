@@ -4,14 +4,18 @@ import nltk
 from nltk.tokenize import sent_tokenize
 from transformers import (
     DistilBertTokenizer, DistilBertForSequenceClassification,
-    T5Tokenizer, T5ForConditionalGeneration
+    T5Tokenizer, T5ForConditionalGeneration, safe_load
 )
 
 distilbert_path = "./distilbert_resume_classifier_v2"
 t5_path = "./t5model_v4"
 
 distilbert_tokenizer = DistilBertTokenizer.from_pretrained(distilbert_path)
-distilbert_model = DistilBertForSequenceClassification.from_pretrained(distilbert_path)
+distilbert_model = DistilBertForSequenceClassification.from_pretrained(
+    distilbert_path,
+    local_files_only=True,
+    trust_remote_code=True
+)
 
 t5_tokenizer = T5Tokenizer.from_pretrained(t5_path)
 t5_model = T5ForConditionalGeneration.from_pretrained(t5_path)
