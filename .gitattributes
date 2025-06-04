@@ -3,3 +3,4 @@ distilbert_resume_classifier_v2/* filter=lfs diff=lfs merge=lfs -text
 t5model_v4 filter=lfs diff=lfs merge=lfs -text
 t5model_v4/** filter=lfs diff=lfs merge=lfs -text
 distilbert_resume_classifier_v2/** filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
