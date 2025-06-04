@@ -12,11 +12,12 @@ from chatbot.vector_store import load_vector_store
 from chatbot.resume_analyzer import analyze_resume
 from fpdf import FPDF
 from sentence_transformers import SentenceTransformer, util
+from transformers import T5Tokenizer, T5ForConditionalGeneration
 
 torch_device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # === Load NLP + Models ===
-nlp = spacy.load("en_core_web_md")
+nlp = spacy.load("en_core_web_sm")
 retriever = load_vector_store().as_retriever()
 chat_model = ChatOpenAI(temperature=0)
 conversational_chain = ConversationalRetrievalChain.from_llm(llm=chat_model, retriever=retriever, return_source_documents=True)
