@@ -7,11 +7,15 @@ from transformers import (
     T5Tokenizer, T5ForConditionalGeneration
 )
 
-distilbert_path = "./distilbert_resume_classifier_v2"
+model_path = "distilbert_resume_classifier_v2"
 t5_path = "./t5model_v4"
 
-distilbert_tokenizer = DistilBertTokenizer.from_pretrained(distilbert_path)
-distilbert_model = DistilBertForSequenceClassification.from_pretrained("distilbert_resume_classifier_v2")
+distilbert_tokenizer = DistilBertTokenizer.from_pretrained(model_path)
+distilbert_model = DistilBertForSequenceClassification.from_pretrained(
+    model_path,
+    trust_remote_code=True,       # This helps support safetensors format
+    local_files_only=True         # Ensures it uses your local folder, not huggingface hub
+)
 
 t5_tokenizer = T5Tokenizer.from_pretrained(t5_path)
 t5_model = T5ForConditionalGeneration.from_pretrained(t5_path)
@@ -102,10 +106,6 @@ def analyze_resume(resume_text: str):
         "sentence_count": len(sentences),
         "missing_sections": missing_sections
     }
-
-import spacy
-
-nlp = spacy.load("en_core_web_sm")
 
 def analyze_refinement(refined_text):
     sections = {
