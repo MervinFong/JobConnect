@@ -4,7 +4,7 @@ import nltk
 from nltk.tokenize import sent_tokenize
 from transformers import (
     DistilBertTokenizer, DistilBertForSequenceClassification,
-    T5Tokenizer, T5ForConditionalGeneration, safe_load
+    T5Tokenizer, T5ForConditionalGeneration
 )
 
 distilbert_path = "./distilbert_resume_classifier_v2"
