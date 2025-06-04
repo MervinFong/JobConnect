@@ -13,5 +13,5 @@ def download_if_not_exists(folder_name, gdrive_id):
         print(f"{folder_name} already exists. Skipping download.")
 
 if __name__ == "__main__":
-    download_if_not_exists("t5_resume_model_v2", T5_FOLDER_ID)
+    download_if_not_exists("t5model_v4", T5_FOLDER_ID)
     download_if_not_exists("distilbert_resume_classifier_v2", DISTILBERT_FOLDER_ID)
