@@ -11,11 +11,7 @@ distilbert_path = "./distilbert_resume_classifier_v2"
 t5_path = "./t5model_v4"
 
 distilbert_tokenizer = DistilBertTokenizer.from_pretrained(distilbert_path)
-distilbert_model = DistilBertForSequenceClassification.from_pretrained(
-    distilbert_path,
-    local_files_only=True,
-    trust_remote_code=True
-)
+distilbert_model = DistilBertForSequenceClassification.from_pretrained("distilbert_resume_classifier_v2")
 
 t5_tokenizer = T5Tokenizer.from_pretrained(t5_path)
 t5_model = T5ForConditionalGeneration.from_pretrained(t5_path)
