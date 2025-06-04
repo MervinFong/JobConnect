@@ -5,10 +5,11 @@ from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import OpenAIEmbeddings
 
 # --- Load environment variables (.env) ---
 load_dotenv()
-print("🔑 Loaded key:", os.getenv("OPENAI_API_KEY"))
+print(os.getenv("OPENAI_API_KEY"))
 
 # --- Build vector store from .txt files ---
 def build_vector_store(doc_folder="jobconnect_docs"):
@@ -24,12 +25,12 @@ def build_vector_store(doc_folder="jobconnect_docs"):
 
         print(f"📄 Processed: {filepath.name} ({len(split_docs)} chunks)")
 
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(openai_api_key=st.secrets["OPENAI_API_KEY"])
     vectorstore = FAISS.from_documents(docs, embeddings)
     vectorstore.save_local("jobconnect_index")
     print("✅ Vector store built and saved to: jobconnect_index")
 
 # --- Load existing vector store ---
 def load_vector_store():
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(openai_api_key=st.secrets["OPENAI_API_KEY"])
     return FAISS.load_local("jobconnect_index", embeddings, allow_dangerous_deserialization=True)
