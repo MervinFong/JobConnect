@@ -1,5 +1,6 @@
 import streamlit as st
 import base64
+import download_spacy_model
 from download_models import download_if_not_exists
 
 # Auto-download model folders if missing
