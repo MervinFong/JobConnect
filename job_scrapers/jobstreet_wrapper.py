@@ -4,6 +4,7 @@ import subprocess
 from typing import List, Dict
 import spacy
 from textblob import TextBlob
+import sys
 
 # ✅ Wrapped loading logic
 def get_spacy_model():
@@ -36,8 +37,7 @@ def fetch_scraped_jobs(keyword: str = "Software Engineer", location: str = "Mala
     def run_scraper(keyword: str, location: str) -> List[Dict]:
         try:
             script_path = os.path.join(os.path.dirname(__file__), "jobstreet_scraper_cloud.py")
-            python_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".venv", "Scripts", "python.exe")
-
+            python_path = sys.executable
             process = subprocess.run(
                 [python_path, script_path, keyword, location],
                 capture_output=True,
