@@ -151,7 +151,7 @@ def get_personalized_chain(db, email):
             }
 
         if any(kw in user_input.lower() for kw in ["job", "career", "vacancy", "opening", "apply"]):
-            scraped_links = fetch_scraped_jobs(user_input, resume_category)
+            scraped_links = fetch_scraped_jobs(keyword=user_input, location="Malaysia")  
             internal_jobs = get_internal_jobs(db)
 
             response_text = """🗂️ Internal Job Postings:
