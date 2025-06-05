@@ -1,42 +1,52 @@
 import torch
 import spacy
 import datetime
-import os
 from langchain.schema import Document
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from firebase_admin import firestore
-from transformers import T5Tokenizer, T5ForConditionalGeneration, DistilBertTokenizer, DistilBertForSequenceClassification
+from transformers import (
+    T5Tokenizer, T5ForConditionalGeneration,
+    DistilBertTokenizer, DistilBertForSequenceClassification
+)
 from job_scrapers.jobstreet_wrapper import fetch_scraped_jobs
 from chatbot.vector_store import load_vector_store
 from chatbot.resume_analyzer import analyze_resume
 from fpdf import FPDF
 from sentence_transformers import SentenceTransformer, util
-from transformers import T5Tokenizer, T5ForConditionalGeneration
 
+# === Device Setup ===
 torch_device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# === Load NLP + Models ===
+# === NLP and Embedding Models ===
 nlp = spacy.load("en_core_web_sm")
 retriever = load_vector_store().as_retriever()
 chat_model = ChatOpenAI(temperature=0)
-conversational_chain = ConversationalRetrievalChain.from_llm(llm=chat_model, retriever=retriever, return_source_documents=True)
+conversational_chain = ConversationalRetrievalChain.from_llm(
+    llm=chat_model,
+    retriever=retriever,
+    return_source_documents=True
+)
 
-# === Load T5 Model ===
+# === Load Resume Models ===
 T5_MODEL_PATH = "t5model_v4"
 t5_tokenizer = T5Tokenizer.from_pretrained(T5_MODEL_PATH)
 t5_model = T5ForConditionalGeneration.from_pretrained(T5_MODEL_PATH).to(torch_device)
 
-# === Load DistilBERT Model ===
 DISTILBERT_PATH = "distilbert_resume_classifier_v2"
 distilbert_tokenizer = DistilBertTokenizer.from_pretrained(DISTILBERT_PATH)
-distilbert_model = DistilBertForSequenceClassification.from_pretrained(DISTILBERT_PATH).to(torch_device)
+distilbert_model = DistilBertForSequenceClassification.from_pretrained(
+    DISTILBERT_PATH,
+    local_files_only=True,
+    trust_remote_code=True
+).to(torch_device)
+
 label_map = {
     0: "Education", 1: "Engineering", 2: "Finance", 3: "Healthcare", 4: "Human Resources (HR)",
     5: "Information Technology (IT)", 6: "Marketing", 7: "Operations", 8: "Others", 9: "Sales"
 }
 
-# === Memory and Intents ===
+# === Session Memory and Intent Setup ===
 session_memory = {}
 intent_model = SentenceTransformer("all-MiniLM-L6-v2")
 intent_examples = {
@@ -52,6 +62,7 @@ intent_embeddings = {
     for label, samples in intent_examples.items()
 }
 
+# === Helper Functions ===
 def detect_intent(user_input):
     query_vec = intent_model.encode(user_input, convert_to_tensor=True)
     best_intent = "unknown"
@@ -88,21 +99,25 @@ def get_internal_jobs(db):
             jobs.append(f"- {title} at {company}")
     return jobs
 
+# === Main Chain Entry Point ===
 def get_personalized_chain(db, email):
     if email not in session_memory:
-        session_memory[email] = {}
-    if "jobstreet_links" not in session_memory[email]:
-        session_memory[email]["jobstreet_links"] = []
-    if "chat_history" not in session_memory[email]:
-        session_memory[email]["chat_history"] = []
+        session_memory[email] = {
+            "jobstreet_links": [],
+            "chat_history": []
+        }
 
     def run_chain(user_input: str):
         resume_text = ""
-        resume_docs = db.collection("resume_uploads").where("email", "==", email).order_by("timestamp", direction=firestore.Query.DESCENDING).limit(1).stream()
+        resume_docs = db.collection("resume_uploads") \
+            .where("email", "==", email) \
+            .order_by("timestamp", direction=firestore.Query.DESCENDING) \
+            .limit(1).stream()
         for doc in resume_docs:
             resume_text = doc.to_dict().get("resume_text", "")
             break
 
+        # Auto-refine if no user input but resume exists
         if not user_input.strip() and resume_text:
             category = predict_category(resume_text)
             refined = run_t5_refiner(resume_text)
@@ -151,7 +166,7 @@ def get_personalized_chain(db, email):
             }
 
         if any(kw in user_input.lower() for kw in ["job", "career", "vacancy", "opening", "apply"]):
-            scraped_links = fetch_scraped_jobs(keyword=user_input, location="Malaysia")  
+            scraped_links = fetch_scraped_jobs(keyword=user_input, location="Malaysia")
             internal_jobs = get_internal_jobs(db)
 
             response_text = """🗂️ Internal Job Postings:
@@ -169,6 +184,7 @@ def get_personalized_chain(db, email):
                 "resume_pdf": None
             }
 
+        # Fallback to conversational memory chain
         history = session_memory[email]["chat_history"]
         response = conversational_chain.invoke({
             "question": user_input,
