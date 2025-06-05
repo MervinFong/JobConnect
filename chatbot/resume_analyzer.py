@@ -1,25 +1,34 @@
 import torch
 import spacy
 import nltk
+import os
 from nltk.tokenize import sent_tokenize
 from transformers import (
     DistilBertTokenizer, DistilBertForSequenceClassification,
     T5Tokenizer, T5ForConditionalGeneration
 )
 
+# === Model Paths ===
 model_path = "distilbert_resume_classifier_v2"
 t5_path = "./t5model_v4"
 
+# === Load Tokenizers ===
 distilbert_tokenizer = DistilBertTokenizer.from_pretrained(model_path)
+t5_tokenizer = T5Tokenizer.from_pretrained(t5_path)
+
+# === Load Models with safetensors ===
 distilbert_model = DistilBertForSequenceClassification.from_pretrained(
     model_path,
-    trust_remote_code=True,       # This helps support safetensors format
-    local_files_only=True         # Ensures it uses your local folder, not huggingface hub
+    trust_remote_code=True,
+    local_files_only=True,
+    torch_dtype=torch.float32
 )
 
-t5_tokenizer = T5Tokenizer.from_pretrained(t5_path)
-t5_model = T5ForConditionalGeneration.from_pretrained(t5_path)
-
+t5_model = T5ForConditionalGeneration.from_pretrained(
+    t5_path,
+    local_files_only=True,
+    torch_dtype=torch.float32
+)
 
 # === Download required NLTK data ===
 nltk.download("punkt", quiet=True)
