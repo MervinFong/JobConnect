@@ -5,8 +5,9 @@ from typing import List, Dict
 import spacy
 from textblob import TextBlob
 import sys
+from pathlib import Path
 
-# ✅ Wrapped loading logic
+# ✅ Load spaCy model only when needed
 def get_spacy_model():
     try:
         return spacy.load("en_core_web_sm")
@@ -15,10 +16,7 @@ def get_spacy_model():
         download("en_core_web_sm")
         return spacy.load("en_core_web_sm")
 
-# ✅ DO NOT load nlp globally anymore
-# nlp = get_spacy_model()  ← REMOVE THIS
-
-# Predefined synonym map
+# ✅ Predefined synonym mapping
 SYNONYM_MAP = {
     "software": ["developer", "engineer", "coder", "programmer"],
     "analyst": ["data analyst", "researcher", "insight specialist"],
@@ -33,45 +31,49 @@ SYNONYM_MAP = {
 
 KNOWN_JOBS = list(SYNONYM_MAP.keys()) + [j for subs in SYNONYM_MAP.values() for j in subs]
 
+# ✅ Scraper runner with cloud-safe logging
+def run_scraper(keyword: str, location: str) -> List[Dict]:
+    try:
+        script_path = os.path.join(Path(__file__).parent, "jobstreet_scraper_cloud.py")
+        python_path = sys.executable
+        process = subprocess.run(
+            [python_path, script_path, keyword, location],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        if process.stderr:
+            print(f"⚠️ STDERR from scraper: {process.stderr.strip()}")
+
+        if not process.stdout.strip():
+            print(f"⚠️ No STDOUT returned from scraper for keyword: {keyword}")
+            return []
+
+        print("🔍 RAW OUTPUT:", process.stdout.strip())
+
+        jobs = json.loads(process.stdout.strip())
+        return jobs
+
+    except json.JSONDecodeError as e:
+        print("❌ Failed to parse scraped job results:", e)
+    except Exception as e:
+        print("❌ Unknown error occurred while running scraper:", e)
+
+    return []
+
+# ✅ Main job fetch function with NLP fallback
 def fetch_scraped_jobs(keyword: str = "Software Engineer", location: str = "Malaysia") -> List[Dict]:
-    def run_scraper(keyword: str, location: str) -> List[Dict]:
-        try:
-            script_path = os.path.join(os.path.dirname(__file__), "jobstreet_scraper_cloud.py")
-            python_path = sys.executable
-            process = subprocess.run(
-                [python_path, script_path, keyword, location],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-
-            print("🔍 RAW SCRAPER OUTPUT:")
-            print(process.stdout)
-
-            jobs = json.loads(process.stdout)
-            return jobs
-
-        except subprocess.CalledProcessError as e:
-            print("❌ Scraper subprocess error:", e.stderr)
-        except json.JSONDecodeError as e:
-            print("❌ Failed to parse scraped job results:", e)
-        except Exception as e:
-            print("❌ Unknown error occurred while scraping:", e)
-
-        return []
-
     tried = set()
-
     corrected = str(TextBlob(keyword).correct())
+
     print(f"📝 Spellcheck: '{keyword}' → '{corrected}'")
     jobs = run_scraper(corrected, location)
     if jobs:
         return jobs
     tried.add(corrected.lower())
 
-    # ✅ Load spaCy model now
     nlp = get_spacy_model()
-
     doc = nlp(corrected)
     fallback_nouns = [token.text.lower() for token in doc if token.pos_ in {"NOUN", "PROPN"}]
 
